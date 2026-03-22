@@ -36,6 +36,11 @@ Generates a meeting-ready pack:
 - **Frankfurter**: EURUSD (ECB ref rates, daily)
 
 ---
+## Using the website 
+
+Access the [link here](https://rates-fx-risk-monitor-truman.streamlit.app/Overview) to try it out!
+
+---
 
 ## Setup (Local)
 
