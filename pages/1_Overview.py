@@ -66,7 +66,8 @@ else:
     try:
         cal_df = get_te_calendar_cached(TE_API_KEY, cal_start, cal_end, country, imp_val)
         if cal_df is None or len(cal_df) == 0:
-            st.warning("No events returned for this window / filters.")
+            st.warning("No events returned for this window / filters. "
+                       "Try going back to 2025 as Trading Economic Calendar does not allow recent data to be pulled.")
         else:
             st.dataframe(
                 cal_df[["time", "report", "period", "actual", "forecast", "previous"]],
@@ -78,7 +79,6 @@ else:
         st.error("Calendar fetch failed. Check TE access / rate limits, and try again later.")
 
     st.caption(f"Returned {len(cal_df)} events for {cal_start} → {cal_end}")
-
 
 st.divider()
 

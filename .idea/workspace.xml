@@ -4,19 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d4c44383-f1cf-4915-8a8b-cac3742c99c7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/data/market_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/workflows/daily_pack.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Rates-FX Risk Monitor.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Rates-FX Risk Monitor.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/1_Overview.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/1_Overview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/runetime.txt" beforeDir="false" afterPath="$PROJECT_DIR$/runtime.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/.streamlit/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.streamlit/config.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/fred.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/econ_calendar.py" afterDir="false" />
-    </list>
+    <list default="true" id="d4c44383-f1cf-4915-8a8b-cac3742c99c7" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
