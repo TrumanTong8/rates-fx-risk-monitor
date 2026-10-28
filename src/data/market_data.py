@@ -7,6 +7,8 @@ from functools import lru_cache
 import pandas as pd
 import requests
 
+from src.data import fred
+
 
 def fetch_fred_series(
     api_key: str,
@@ -14,24 +16,7 @@ def fetch_fred_series(
     start: date,
     end: date,
 ) -> pd.Series:
-    url = "https://api.stlouisfed.org/fred/series/observations"
-    params = {
-        "series_id": series_id,
-        "api_key": api_key,
-        "file_type": "json",
-        "observation_start": start.isoformat(),
-        "observation_end": end.isoformat(),
-    }
-    r = requests.get(url, params=params, timeout=20)
-    r.raise_for_status()
-    payload = r.json()
-
-    obs = payload.get("observations", [])
-    df = pd.DataFrame(obs)
-
-    df["value"] = pd.to_numeric(df["value"].replace(".", None), errors="coerce")
-    df["date"] = pd.to_datetime(df["date"])
-    return df.set_index("date")["value"].sort_index()
+    return fred.fetch_fred_series(series_id, start=start, end=end, api_key=api_key)
 
 
 @lru_cache(maxsize=1)

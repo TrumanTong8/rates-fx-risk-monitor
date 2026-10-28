@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from src.data.econ_calendar import fetch_te_calendar
 from src.data.market_data import build_rates_fx_frame  # <-- real market data
 
 
@@ -34,10 +33,8 @@ def build_daily_pack(
     pack_type: str,
     # Market data (FRED)
     fred_api_key: str | None = None,
-    # Economic calendar (Trading Economics)
-    te_api_key: str | None = None,
-    te_country: str = "united states",
-    te_importance: int | None = 3,
+    # Next-48h events from src.data.calendar (already filtered by the caller)
+    events: pd.DataFrame | None = None,
 ) -> dict:
     """
     Returns:
@@ -132,33 +129,20 @@ def build_daily_pack(
 """
 
     # ----------------------------
-    # 4) Calendar section (Trading Economics)
+    # 4) Calendar section (shared calendar)
     # ----------------------------
-    events = None
-    if te_api_key and te_api_key.strip():
-        try:
-            events = fetch_te_calendar(
-                api_key=te_api_key.strip(),
-                start=asof,
-                end=asof + timedelta(days=2),
-                tz="Asia/Singapore",
-                country=te_country,
-                importance=te_importance,
-            )
-
-            top = events.head(8) if events is not None else None
-            summary_md += "\n**Next 48h key events**\n"
-            if top is not None and len(top) > 0:
-                for _, r in top.iterrows():
-                    summary_md += (
-                        f"- {r['time']} — {r['report']} ({r['period']}) | "
-                        f"F:{r.get('forecast')} P:{r.get('previous')}\n"
-                    )
-            else:
-                summary_md += "- (No events in this window)\n"
-        except Exception:
-            summary_md += "\n**Next 48h key events**\n- (Calendar unavailable — check TE access / rate limits)\n"
+    summary_md += "\n**Next 48h key events**\n"
+    if events is None:
+        summary_md += "- (Calendar unavailable — sources did not respond)\n"
+    elif len(events) == 0:
+        summary_md += "- (No events in this window)\n"
     else:
-        summary_md += "\n**Next 48h key events**\n- (No TE API key configured)\n"
+        for _, r in events.head(8).iterrows():
+            forecast = r.get("forecast") or "—"
+            previous = r.get("previous") or "—"
+            summary_md += (
+                f"- {r['date']} {r['time']} — {r['country']} {r['title']} | "
+                f"F:{forecast} P:{previous}\n"
+            )
 
     return {"figures": figs, "summary_md": summary_md, "data": df, "events": events}

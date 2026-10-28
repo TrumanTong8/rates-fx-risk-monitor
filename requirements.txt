@@ -1,9 +1,12 @@
-streamlit
-pandas
-numpy
-plotly
+streamlit>=1.54
+pandas>=2.2,<3
+numpy>=2,<3
+plotly>=6,<7
 statsmodels
 scikit-learn
 pandas-datareader
 pyarrow
 requests
+yfinance>=1.7
+pyyaml
+matplotlib

@@ -4,3 +4,8 @@ __pycache__/
 .DS_Store
 .streamlit/secrets.toml
 data_cache/
+_cache/
+
+# Legacy source for the expression + commodities dashboards. Code is ported into src/;
+# the folder itself holds notebooks with credentials and Bloomberg data exports.
+/expression-ranking-dashboard/
