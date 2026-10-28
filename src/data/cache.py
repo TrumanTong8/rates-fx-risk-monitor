@@ -5,6 +5,8 @@ source modules so repeated reruns (and other pages) reuse the same in-memory res
 """
 from __future__ import annotations
 
+import os
+from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
@@ -16,11 +18,54 @@ from src.data import calendar, cftc, eia, fred, yahoo
 HOUR = 60 * 60
 
 
+def find_secret(secrets: Mapping, name: str) -> str | None:
+    """
+    Look up a secret at the top level, then one level down inside any [section] table,
+    since keys pasted below a section header in the Streamlit Cloud editor land there.
+    """
+    if name in secrets:
+        return str(secrets[name]).strip()
+    for section in secrets.values():
+        if isinstance(section, Mapping) and name in section:
+            return str(section[name]).strip()
+    return None
+
+
+def similar_secret_names(secrets: Mapping, name: str) -> list[str]:
+    """Secret names (never values) that look like a misspelling of `name`, for error hints."""
+    prefix = name.split("_")[0].lower()  # e.g. "eia"
+    found = []
+    for key, value in secrets.items():
+        if isinstance(value, Mapping):
+            found += [f"[{key}] {sub}" for sub in value if prefix in str(sub).lower()]
+        elif key != name and prefix in str(key).lower():
+            found.append(key)
+    return found
+
+
 def get_secret(name: str, default: str = "") -> str:
     try:
-        return str(st.secrets.get(name, default)).strip()
+        value = find_secret(st.secrets, name)
     except FileNotFoundError:
-        return default
+        value = None
+    if value is None:
+        value = os.environ.get(name, default)
+    return value.strip()
+
+
+def require_secret(name: str, signup_url: str) -> str:
+    value = get_secret(name)
+    if value:
+        return value
+    try:
+        similar = similar_secret_names(st.secrets, name)
+    except FileNotFoundError:
+        similar = []
+    hint = f" Found similar secret names: {', '.join(similar)}." if similar else ""
+    raise ValueError(
+        f"Missing {name}. Add `{name} = \"...\"` at the top of the app's secrets, "
+        f"above any [section] header (free key: {signup_url}).{hint}"
+    )
 
 
 @st.cache_data(ttl=HOUR, show_spinner=False)
@@ -46,7 +91,7 @@ def fred_indicator(series_ids: str | tuple[str, ...], transform: str = "level") 
 
 @st.cache_data(ttl=6 * HOUR, show_spinner=False)
 def eia_series(series_id: str) -> pd.Series:
-    return eia.fetch_eia_series(series_id, get_secret("EIA_API_KEY"))
+    return eia.fetch_eia_series(series_id, require_secret("EIA_API_KEY", "https://www.eia.gov/opendata/register.php"))
 
 
 @st.cache_data(ttl=6 * HOUR, show_spinner=False)
