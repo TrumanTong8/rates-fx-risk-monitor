@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src.data import calendar, cftc, eia, fred, yahoo  # noqa: E402
-from src.data.symbols import LEGACY_TO_FRED, LEGACY_TO_YAHOO  # noqa: E402
+from src.data.symbols import LEGACY_TO_YAHOO  # noqa: E402
+from src.expression.tests.regime import ECONOMIC_INDICATORS, MARKET_INDICATORS  # noqa: E402
 
 ENERGY_EIA_SERIES = [
     "PET.WCESTUS1.W", "NG.NW2_EPG0_SWO_R48_BCF.W", "PET.WGFSTUS1.W", "PET.WDISTUS1.W",
@@ -58,10 +59,10 @@ def main() -> int:
         run_check(results, "Yahoo", symbol,
                   lambda s=symbol: describe(pd.DatetimeIndex(yahoo.fetch_daily_prices(s, years=30)["date"])))
 
-    for legacy, (ids, transform) in LEGACY_TO_FRED.items():
-        label = f"{legacy} ({transform})"
-        run_check(results, "FRED", label,
-                  lambda i=ids, t=transform: describe(fred.fetch_fred_indicator(i, t, api_key=fred_key).index))
+    for row in ECONOMIC_INDICATORS + MARKET_INDICATORS:
+        ids = list(row["fred"]) if isinstance(row["fred"], tuple) else row["fred"]
+        run_check(results, "FRED", row["label"],
+                  lambda i=ids, t=row["transform"]: describe(fred.fetch_fred_indicator(i, t, api_key=fred_key).index))
 
     for series_id in ENERGY_EIA_SERIES:
         run_check(results, "EIA", series_id, lambda s=series_id: describe(eia.fetch_eia_series(s, eia_key).index))

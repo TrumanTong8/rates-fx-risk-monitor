@@ -9,6 +9,7 @@ Official US dates only fill in after the ForexFactory window, so events are not 
 from __future__ import annotations
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, time
 from zoneinfo import ZoneInfo
 
@@ -25,6 +26,8 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 NEW_YORK = ZoneInfo("America/New_York")
 
 COLUMNS = ["datetime", "date", "time", "country", "title", "impact", "forecast", "previous", "source"]
+
+_FF_LAST_GOOD: dict[str, list[dict]] = {}
 
 # FRED release id -> (title, impact, release time in New York)
 US_RELEASES = {
@@ -68,9 +71,12 @@ def fetch_forexfactory_events(tz: str = "Asia/Singapore") -> pd.DataFrame:
         try:
             r = requests.get(feed, headers=HEADERS, timeout=15)
             r.raise_for_status()
-            rows.extend(r.json())
+            _FF_LAST_GOOD[feed] = r.json()
         except (requests.RequestException, ValueError):
-            continue
+            # ForexFactory rate-limits (HTTP 429) and publishes next week's feed late (404);
+            # fall back to the last good copy this process downloaded, if any.
+            pass
+        rows.extend(_FF_LAST_GOOD.get(feed, []))
     if not rows:
         return _empty()
 
@@ -81,25 +87,31 @@ def fetch_forexfactory_events(tz: str = "Asia/Singapore") -> pd.DataFrame:
     return _finish(frame, tz)
 
 
+def _fred_release_dates(release_id: int, api_key: str, start: date) -> list[dict]:
+    params = {
+        "release_id": release_id,
+        "api_key": api_key,
+        "file_type": "json",
+        "include_release_dates_with_no_data": "true",
+        "realtime_start": start.isoformat(),
+        "sort_order": "asc",
+    }
+    try:
+        r = requests.get(FRED_RELEASE_DATES_URL, params=params, timeout=20)
+        r.raise_for_status()
+    except requests.RequestException:
+        return []
+    return r.json().get("release_dates", [])
+
+
 def fetch_us_release_events(api_key: str, start: date, tz: str = "Asia/Singapore") -> pd.DataFrame:
     if not api_key:
         return _empty()
+    with ThreadPoolExecutor(max_workers=len(US_RELEASES)) as pool:
+        dates_by_release = dict(zip(US_RELEASES, pool.map(lambda rid: _fred_release_dates(rid, api_key, start), US_RELEASES)))
     rows = []
     for release_id, (title, impact, release_time) in US_RELEASES.items():
-        params = {
-            "release_id": release_id,
-            "api_key": api_key,
-            "file_type": "json",
-            "include_release_dates_with_no_data": "true",
-            "realtime_start": start.isoformat(),
-            "sort_order": "asc",
-        }
-        try:
-            r = requests.get(FRED_RELEASE_DATES_URL, params=params, timeout=20)
-            r.raise_for_status()
-        except requests.RequestException:
-            continue
-        for item in r.json().get("release_dates", []):
+        for item in dates_by_release[release_id]:
             day = date.fromisoformat(item["date"])
             rows.append({
                 "datetime": datetime.combine(day, release_time, tzinfo=NEW_YORK),
@@ -170,8 +182,20 @@ def fetch_events(
     if not frames:
         return _empty()
     events = pd.concat(frames, ignore_index=True)
+    return filter_events(events, start, end, currencies, impacts)
 
-    events = events[events["date"] >= start]
+
+def filter_events(
+    events: pd.DataFrame,
+    start: date | None = None,
+    end: date | None = None,
+    currencies: list[str] | None = None,
+    impacts: tuple[str, ...] | None = None,
+) -> pd.DataFrame:
+    if events.empty:
+        return events
+    if start is not None:
+        events = events[events["date"] >= start]
     if end is not None:
         events = events[events["date"] <= end]
     if currencies:

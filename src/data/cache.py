@@ -5,6 +5,7 @@ source modules so repeated reruns (and other pages) reuse the same in-memory res
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 import pandas as pd
@@ -58,7 +59,29 @@ def open_interest(market: str) -> pd.Series:
     return cftc.fetch_open_interest(market)
 
 
+@st.cache_data(ttl=6 * HOUR, show_spinner=False)
+def cot_markets(markets: tuple[str, ...]) -> dict[str, pd.DataFrame | str]:
+    """
+    Fetch several markets at once; the CFTC API takes ~5s per query regardless of size,
+    so running them in parallel is what keeps page loads fast. Failed markets map to
+    their error message instead of a frame.
+    """
+    def fetch(market: str) -> pd.DataFrame | str:
+        try:
+            return cftc.fetch_cot_market(market)
+        except Exception as exc:
+            return f"CFTC fetch failed for {market}: {exc}"
+
+    unique = list(dict.fromkeys(m for m in markets if m))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return dict(zip(unique, pool.map(fetch, unique)))
+
+
 @st.cache_data(ttl=HOUR, show_spinner=False)
+def _all_events(start: date, tz: str) -> pd.DataFrame:
+    return calendar.fetch_events(start=start, impacts=None, tz=tz, fred_api_key=get_secret("FRED_API_KEY") or None)
+
+
 def events(
     start: date | None = None,
     end: date | None = None,
@@ -66,11 +89,11 @@ def events(
     impacts: tuple[str, ...] | None = ("High", "Medium"),
     tz: str = "Asia/Singapore",
 ) -> pd.DataFrame:
-    return calendar.fetch_events(
+    """All sources are downloaded once per start date; filters are applied per call."""
+    return calendar.filter_events(
+        _all_events(start or date.today(), tz),
         start=start,
         end=end,
         currencies=list(currencies) if currencies else None,
         impacts=impacts,
-        tz=tz,
-        fred_api_key=get_secret("FRED_API_KEY") or None,
     )

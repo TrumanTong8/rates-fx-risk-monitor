@@ -1,0 +1,52 @@
+expressions:
+- name: Short EUR/USD
+  symbol: EURUSD=X
+  asset_class: FX
+  direction: short
+  view_link: short EUR versus USD.
+  cftc_market: EURO FX
+- name: Long Nasdaq 100
+  symbol: ^NDX
+  asset_class: Equity index
+  direction: long
+  view_link: Nasdaq-100 index proxy; cleaner index exposure than QQQ ETF for historical
+    testing.
+  cftc_market: NASDAQ MINI
+- name: Long gold
+  symbol: GC=F
+  asset_class: Precious metal future
+  direction: long
+  view_link: Benefits if real yields and the dollar soften.
+  cftc_market: GOLD
+- name: Long silver
+  symbol: SI=F
+  asset_class: Precious metal future
+  direction: long
+  view_link: Front COMEX silver future; benefits from precious-metals beta, with more cyclical
+    sensitivity than gold.
+  cftc_market: SILVER
+- name: Long JPY/USD
+  symbol: JPYUSD=X
+  asset_class: FX
+  direction: long
+  view_link: JPYUSD rises when JPY strengthens versus USD; this aligns with long Japanese
+    yen futures positioning.
+  cftc_market: JAPANESE YEN
+- name: Long 2Y Treasury future
+  symbol: ZT=F
+  asset_class: Rates future
+  direction: long
+  view_link: Front-end duration expression.
+  cftc_market: UST 2Y NOTE
+- name: Long 10Y Treasury future
+  symbol: ZN=F
+  asset_class: Rates future
+  direction: long
+  view_link: Intermediate-duration expression.
+  cftc_market: UST 10Y NOTE
+- name: Long SPY
+  symbol: SPY
+  asset_class: Equity ETF
+  direction: long
+  view_link: Broad US equity beta.
+  cftc_market: E-MINI S&P 500

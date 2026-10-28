@@ -37,27 +37,6 @@ LEGACY_TO_YAHOO = {
     "DXY Curncy": "DX-Y.NYB",
 }
 
-# Old database macro ticker -> (FRED id or ids to splice, transform in src.data.fred.TRANSFORMS)
-LEGACY_TO_FRED = {
-    "GDP CQOQ Index": ("A191RL1Q225SBEA", "level"),          # real GDP, % QoQ annualised
-    "NFP TCH Index": ("PAYEMS", "diff"),                     # payrolls monthly change, thousands
-    "USURTOT Index": ("UNRATE", "level"),
-    "RSTAMOM Index": ("RSAFS", "mom_pct"),
-    "INJCJC Index": ("ICSA", "thousands"),
-    "JOLTTOTL Index": ("JTSJOL", "level"),
-    "CPI YOY Index": ("CPIAUCSL", "yoy_pct"),
-    "CPI XYOY Index": ("CPILFESL", "yoy_pct"),
-    "PCE CYOY Index": ("PCEPILFE", "yoy_pct"),
-    "PCE CMOM Index": ("PCEPILFE", "mom_pct"),
-    "USGGBE10 Index": ("T10YIE", "level"),
-    "USGG5Y5Y Index": ("T5YIFR", "level"),
-    "FDTR Index": (["DFEDTAR", "DFEDTARU"], "level"),        # target, then upper bound from Dec 2008
-    "SOFRRATE Index": ("SOFR", "level"),
-    "USGG2YR Index": ("DGS2", "level"),
-    "USGG5YR Index": ("DGS5", "level"),
-    "USGG10YR Index": ("DGS10", "level"),
-}
-
 
 def to_yahoo(symbol: str) -> str:
     """Map an old database ticker to Yahoo; pass anything else through unchanged."""
