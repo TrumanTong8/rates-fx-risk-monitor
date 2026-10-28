@@ -141,23 +141,23 @@ def render_backtest_section(df: pd.DataFrame, daily_price: pd.Series, cfg: Energ
     chart_cols = st.columns(2)
     chart_cols[0].plotly_chart(
         plot_horizon_bars(summary, "Hit Rate %", "Hit Rate by Horizon", "Hit Rate %"),
-        use_container_width=True,
+        width="stretch",
     )
     chart_cols[1].plotly_chart(
         plot_horizon_bars(summary, "Avg %", "Average Return by Horizon", "Average forward return %"),
-        use_container_width=True,
+        width="stretch",
     )
 
     st.markdown("#### Signal Timeline")
     st.plotly_chart(
         plot_signal_timeline(result, f"{cfg.name}: {Z_LABELS[z_col]} ({lb}Y lookback)"),
-        use_container_width=True,
+        width="stretch",
     )
 
     st.markdown("#### Return Distribution")
     st.plotly_chart(
         plot_return_distribution(result, f"{cfg.name}: forward return distribution"),
-        use_container_width=True,
+        width="stretch",
     )
 
     with st.expander("Detailed backtest tables", expanded=False):
@@ -173,7 +173,7 @@ def render_backtest_section(df: pd.DataFrame, daily_price: pd.Series, cfg: Energ
                     f"Long signals: {len(table_result['long_dates'])} | "
                     f"Short signals: {len(table_result['short_dates'])}"
                 )
-                st.dataframe(table_result["summary"].round(2), use_container_width=True)
+                st.dataframe(table_result["summary"].round(2), width="stretch")
 
 
 commodity_options = list(ENERGY)
@@ -218,12 +218,12 @@ render_data_sources_expander(cfg)
 
 st.plotly_chart(
     plot_seasonal_inventory(df["inventory"], f"{cfg.name}: seasonal inventory range", cfg.inventory_units),
-    use_container_width=True,
+    width="stretch",
 )
-st.plotly_chart(plot_inventory_vs_oi(df, cfg.name, cfg.inventory_units), use_container_width=True)
-st.plotly_chart(plot_line(df, ["inv_wow", "inv_roll28d"], "Inventory changes", "% change"), use_container_width=True)
-st.plotly_chart(plot_line(df, ["inv_to_oi"], "Inventory / open interest", "ratio"), use_container_width=True)
-st.dataframe(df.tail(20).round(4), use_container_width=True)
+st.plotly_chart(plot_inventory_vs_oi(df, cfg.name, cfg.inventory_units), width="stretch")
+st.plotly_chart(plot_line(df, ["inv_wow", "inv_roll28d"], "Inventory changes", "% change"), width="stretch")
+st.plotly_chart(plot_line(df, ["inv_to_oi"], "Inventory / open interest", "ratio"), width="stretch")
+st.dataframe(df.tail(20).round(4), width="stretch")
 
 st.divider()
 if price is None:

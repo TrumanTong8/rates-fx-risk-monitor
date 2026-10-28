@@ -49,7 +49,7 @@ if cal_df is None:
 elif len(cal_df) == 0:
     st.warning("No events returned for this window / filters.")
 else:
-    st.dataframe(cal_df[CALENDAR_COLUMNS], use_container_width=True, hide_index=True)
+    st.dataframe(cal_df[CALENDAR_COLUMNS], width="stretch", hide_index=True)
     st.caption(f"Returned {len(cal_df)} events for {cal_start} → {cal_end} (times in SGT)")
 st.caption(
     "ForexFactory covers this week and next for all currencies (with forecast/previous). "
@@ -98,7 +98,7 @@ with st.expander("Generate pack (3–5 charts + discussion summary)", expanded=T
         if figs:
             cols = st.columns(2)
             for i, fig in enumerate(figs):
-                cols[i % 2].plotly_chart(fig, use_container_width=True)
+                cols[i % 2].plotly_chart(fig, width="stretch")
 
         summary_md = pack.get("summary_md", "")
         st.subheader("Discussion summary (copy/paste)")
@@ -116,7 +116,7 @@ with st.expander("Generate pack (3–5 charts + discussion summary)", expanded=T
             st.subheader("Next 48h key events (from Daily Pack)")
             st.dataframe(
                 events_df[CALENDAR_COLUMNS].head(12),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
         else:

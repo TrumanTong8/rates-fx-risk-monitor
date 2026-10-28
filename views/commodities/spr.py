@@ -85,4 +85,4 @@ kpi_cols[0].metric("Latest", f"{latest:,.2f} Mbbl")
 kpi_cols[1].metric("Change over range", f"{latest - first:+,.2f} Mbbl")
 kpi_cols[2].metric("Observations", f"{len(filtered):,}")
 
-st.plotly_chart(plot_spr_history(filtered), use_container_width=True)
+st.plotly_chart(plot_spr_history(filtered), width="stretch")

@@ -944,7 +944,7 @@ with st.expander("Add examples", expanded=False):
 editable = st.data_editor(
     st.session_state.expression_universe,
     num_rows="dynamic",
-    use_container_width=True,
+    width="stretch",
     key=f"expr_expression_editor_{st.session_state.expression_editor_version}",
     column_config={
         "direction": st.column_config.SelectboxColumn("direction", options=["long", "short"], required=True),
@@ -969,7 +969,7 @@ if order_options:
     ]
     for column, label, target_index, disabled in move_actions:
         with column:
-            if st.button(label, disabled=disabled, use_container_width=True):
+            if st.button(label, disabled=disabled, width="stretch"):
                 st.session_state.expression_universe = move_expression_row(
                     st.session_state.expression_universe,
                     selected_order_index,
@@ -980,7 +980,7 @@ if order_options:
 
 save_col, download_col, saved_status_col = st.columns([1, 1, 3])
 with save_col:
-    if st.button("Save options", type="primary", use_container_width=True):
+    if st.button("Save options", type="primary", width="stretch"):
         save_expression_frame(st.session_state.expression_universe)
         st.success("Saved")
 with download_col:
@@ -989,7 +989,7 @@ with download_col:
         data=expression_frame_yaml(st.session_state.expression_universe).encode("utf-8"),
         file_name="saved_expressions.yaml",
         mime="application/x-yaml",
-        use_container_width=True,
+        width="stretch",
     )
 with saved_status_col:
     st.caption(
@@ -1130,14 +1130,14 @@ ranking = pd.DataFrame(rows).sort_values("Total", ascending=False)
 
 st.markdown("### Score Map")
 st.caption("Compact summary only. The weights are adjustable and subjective, so use the detailed tabs below for the actual evidence.")
-st.plotly_chart(score_heatmap(ranking), use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+st.plotly_chart(score_heatmap(ranking), width="stretch", config={"scrollZoom": True, "displaylogo": False})
 
 with st.expander("Ranking table", expanded=False):
-    st.dataframe(ranking, use_container_width=True, hide_index=True)
+    st.dataframe(ranking, width="stretch", hide_index=True)
 
 with st.expander("Data coverage check", expanded=True):
     st.caption("Backtests are only as good as the available history. New ETFs, some volatility symbols, and source-limited series may have less history than requested.")
-    st.dataframe(pd.DataFrame(coverage_rows), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(coverage_rows), width="stretch", hide_index=True)
 
 available_expressions = ranking["Expression"].tolist() if not ranking.empty else []
 if not available_expressions:
@@ -1190,8 +1190,8 @@ else:
             The number shown above each box is the **hit rate**: the percentage of historical observations where the direction-adjusted return was positive for the selected expression.
             """
         )
-        st.plotly_chart(make_seasonality_chart(stats), use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
-        st.dataframe(format_seasonality_table(stats), use_container_width=True, hide_index=True)
+        st.plotly_chart(make_seasonality_chart(stats), width="stretch", config={"scrollZoom": True, "displaylogo": False})
+        st.dataframe(format_seasonality_table(stats), width="stretch", hide_index=True)
     with tabs[2]:
         with st.expander("? Technicals and RV terms", expanded=False):
             st.markdown(
@@ -1201,7 +1201,7 @@ else:
                 **RV percentile** ranks the current RV reading against its own history over the stated lookback. A high percentile means volatility is high versus that lookback, not automatically good or bad. **RSI** measures recent price stretch; moving averages and EMA levels summarize trend.
                 """
             )
-        st.plotly_chart(make_technical_chart(technical_frame(prices)), use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+        st.plotly_chart(make_technical_chart(technical_frame(prices)), width="stretch", config={"scrollZoom": True, "displaylogo": False})
         comparison_columns = [
             "Current",
             "1M Return",
@@ -1232,7 +1232,7 @@ else:
                     lambda value: "" if pd.isna(value) else f"{float(value):.2%}"
                 )
         st.caption("Comparison across the current expression universe. Returns and RV values are displayed as percentages; RV percentile cells show the current valueâ€™s placement against the same metricâ€™s 30-year history for that expression.")
-        st.dataframe(comparison_df, use_container_width=True, hide_index=False)
+        st.dataframe(comparison_df, width="stretch", hide_index=False)
 
         st.markdown("#### RV Percentile Matrix")
         st.markdown(
@@ -1253,7 +1253,7 @@ else:
         ]
         rv_percentile_df = pd.DataFrame(rv_percentile_rows).set_index("Expression")
         rv_percentile_df = rv_percentile_df.reindex(columns=rv_percentile_columns)
-        st.dataframe(style_rv_percentile_table(rv_percentile_df), use_container_width=True, hide_index=False)
+        st.dataframe(style_rv_percentile_table(rv_percentile_df), width="stretch", hide_index=False)
     with tabs[3]:
         with st.expander("? CFTC positioning terms", expanded=False):
             st.markdown(
@@ -1282,7 +1282,7 @@ else:
                     "This shows the long and short books before netting."
                 )
                 if gross_chart:
-                    st.plotly_chart(gross_chart, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+                    st.plotly_chart(gross_chart, width="stretch", config={"scrollZoom": True, "displaylogo": False})
                 else:
                     st.info("Gross long/short data not available for this CFTC mapping.")
             with right:
@@ -1292,7 +1292,7 @@ else:
                     "**negative** means it is **net short**."
                 )
                 if net_chart:
-                    st.plotly_chart(net_chart, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+                    st.plotly_chart(net_chart, width="stretch", config={"scrollZoom": True, "displaylogo": False})
                 else:
                     st.info("Net position data not available for this CFTC mapping.")
             st.markdown(
@@ -1304,7 +1304,7 @@ else:
             )
             position_table = positioning_percentile_table(details)
             if not position_table.empty:
-                st.dataframe(style_positioning_table(position_table), use_container_width=True, hide_index=True)
+                st.dataframe(style_positioning_table(position_table), width="stretch", hide_index=True)
             else:
                 st.info("No net-contract percentile data available for the current universe yet.")
 
@@ -1320,7 +1320,7 @@ else:
                     "The **magnitude** shows how large the net position is relative to market size; for example, **-26%** means "
                     "speculative net shorts equal about **26% of total open interest**."
                 )
-                st.plotly_chart(net_oi_chart, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+                st.plotly_chart(net_oi_chart, width="stretch", config={"scrollZoom": True, "displaylogo": False})
             else:
                 st.info("Net position as % of open interest is not available for this CFTC mapping.")
 
@@ -1333,7 +1333,7 @@ else:
             )
             oi_percentile_table = positioning_oi_percentile_table(details)
             if not oi_percentile_table.empty:
-                st.dataframe(style_positioning_table(oi_percentile_table), use_container_width=True, hide_index=True)
+                st.dataframe(style_positioning_table(oi_percentile_table), width="stretch", hide_index=True)
             else:
                 st.info("No net-%OI percentile data available for the current universe yet.")
 
@@ -1349,7 +1349,7 @@ else:
             if squeeze_table.empty:
                 st.info("No squeeze-risk table available for the current CFTC mappings.")
             else:
-                st.dataframe(style_squeeze_table(squeeze_table), use_container_width=True, hide_index=True)
+                st.dataframe(style_squeeze_table(squeeze_table), width="stretch", hide_index=True)
 
             st.markdown("#### Participant Flow")
             st.markdown(
@@ -1360,18 +1360,18 @@ else:
             participant_net_oi_chart = participant_net_percent_oi_chart(detail["cot"])
             participant_weekly_chart = participant_weekly_net_change_chart(detail["cot"])
             if participant_net_oi_chart:
-                st.plotly_chart(participant_net_oi_chart, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+                st.plotly_chart(participant_net_oi_chart, width="stretch", config={"scrollZoom": True, "displaylogo": False})
             else:
                 st.info("Participant net-%OI chart is not available for this CFTC mapping.")
             if participant_weekly_chart:
-                st.plotly_chart(participant_weekly_chart, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+                st.plotly_chart(participant_weekly_chart, width="stretch", config={"scrollZoom": True, "displaylogo": False})
             else:
                 st.info("Participant weekly-flow chart is not available for this CFTC mapping.")
             participant_flow = participant_flow_change_table(detail["cot"])
             if participant_flow.empty:
                 st.info("Participant gross long/short flow table is not available for this CFTC mapping.")
             else:
-                st.dataframe(participant_flow, use_container_width=True, hide_index=True)
+                st.dataframe(participant_flow, width="stretch", hide_index=True)
 
             st.markdown("#### Flow")
             st.markdown(
@@ -1382,7 +1382,7 @@ else:
             if flow_table.empty:
                 st.info("No speculative flow table available for this CFTC mapping.")
             else:
-                st.dataframe(flow_table, use_container_width=True, hide_index=True)
+                st.dataframe(flow_table, width="stretch", hide_index=True)
 
             st.markdown("#### Participant Breakdown")
             st.markdown(
@@ -1394,14 +1394,14 @@ else:
                 st.caption(
                     "Latest participant gross long and gross short. Shorts are plotted below zero so the balance of each group is easier to read."
                 )
-                st.plotly_chart(participant_chart, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+                st.plotly_chart(participant_chart, width="stretch", config={"scrollZoom": True, "displaylogo": False})
             else:
                 st.info("Participant breakdown chart is not available for this CFTC mapping.")
             participant_table = participant_positioning_table(detail["cot"])
             if participant_table.empty:
                 st.info("Participant breakdown table is not available for this CFTC mapping.")
             else:
-                st.dataframe(participant_table, use_container_width=True, hide_index=True)
+                st.dataframe(participant_table, width="stretch", hide_index=True)
         else:
             st.info("No mapped CFTC chart available for this expression yet.")
         with st.expander("CFTC source audit", expanded=True):
@@ -1419,7 +1419,7 @@ else:
             if source_table.empty:
                 st.info("No CFTC source information available.")
             else:
-                st.dataframe(source_table, use_container_width=True, hide_index=True)
+                st.dataframe(source_table, width="stretch", hide_index=True)
         st.caption(results["positioning"].reason)
     with tabs[4]:
         with st.expander("? Event sources and FX rules", expanded=False):
@@ -1435,8 +1435,8 @@ else:
         st.caption(f"Event countries for this expression: {', '.join(selected_event_countries)}")
         timeline = event_timeline(selected_events)
         if timeline:
-            st.plotly_chart(timeline, use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
-            st.dataframe(selected_events, use_container_width=True, hide_index=True)
+            st.plotly_chart(timeline, width="stretch", config={"scrollZoom": True, "displaylogo": False})
+            st.dataframe(selected_events, width="stretch", hide_index=True)
         elif detail.get("events", pd.DataFrame()).empty:
             st.info("No events returned from the automatic calendar feed for this expression's countries.")
         else:
@@ -1481,7 +1481,7 @@ else:
                 "Recent monthly releases can be carried forward for up to two months while waiting for the next release."
             )
             inputs_view = regime_input_table(macro_regime_evidence)
-            st.dataframe(inputs_view, use_container_width=True, hide_index=True)
+            st.dataframe(inputs_view, width="stretch", hide_index=True)
         with st.expander("Macro regime evidence"):
             if macro_regime_evidence.empty:
                 st.info("No FRED macro evidence available for this run.")
@@ -1501,7 +1501,7 @@ else:
                     evidence_columns.insert(2, "stale_months")
                 st.dataframe(
                     evidence_view[evidence_columns].sort_values(["bucket", "label"]),
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                 )
         with st.expander("Regime methodology"):
@@ -1532,7 +1532,7 @@ else:
                 "This shows how many historical months were classified into each regime. "
                 "It is a sample-size check for backtest reliability, not the current regime signal."
             )
-            st.plotly_chart(regime_matrix(regime, regime_history), use_container_width=True, config={"scrollZoom": True, "displaylogo": False})
+            st.plotly_chart(regime_matrix(regime, regime_history), width="stretch", config={"scrollZoom": True, "displaylogo": False})
         with st.expander("Historical regime return table"):
             st.caption(results["regime"].reason)
             if regime_history.empty:
@@ -1541,13 +1541,13 @@ else:
                 regime_return_table = summarize_regime_returns(prices, regime_history, expression.direction, int(horizon_days))
                 st.dataframe(
                     format_regime_return_table(regime_return_table),
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                 )
     with tabs[6]:
         st.markdown("#### Data Source Audit")
         st.caption("Reference map for where each dashboard component comes from and what can go wrong.")
-        st.dataframe(data_source_audit_table(), use_container_width=True, hide_index=True)
+        st.dataframe(data_source_audit_table(), width="stretch", hide_index=True)
 
         st.markdown("#### Known Data Caveats")
         known_data_caveats()
@@ -1577,7 +1577,7 @@ else:
                 {"Term": "Level-driven", "Meaning": "Current net positioning is stretched versus its own history."},
             ]
         )
-        st.dataframe(glossary, use_container_width=True, hide_index=True)
+        st.dataframe(glossary, width="stretch", hide_index=True)
 
         st.markdown("#### Component Methodology")
         with st.expander("Seasonality"):

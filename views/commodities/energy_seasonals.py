@@ -31,4 +31,4 @@ items = list(data.items())
 for idx in range(0, len(items), 2):
     cols = st.columns(2)
     for col, (label, (series, unit)) in zip(cols, items[idx:idx + 2]):
-        col.plotly_chart(plot_seasonal_inventory(series, label, unit), use_container_width=True)
+        col.plotly_chart(plot_seasonal_inventory(series, label, unit), width="stretch")
