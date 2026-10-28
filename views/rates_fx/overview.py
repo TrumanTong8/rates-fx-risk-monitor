@@ -1,30 +1,29 @@
-# pages/1_Overview.py
+# views/rates_fx/overview.py
 from __future__ import annotations
 
 from datetime import date, timedelta
 
 import streamlit as st
 
+from src.data import cache
 from src.workflows.daily_pack import build_daily_pack
-from src.data.econ_calendar import fetch_te_calendar
 
-st.set_page_config(page_title="Overview", layout="wide")
 st.title("Overview")
 
-# --- Trading Economics key (default to guest) ---
-TE_API_KEY = st.secrets.get("TE_API_KEY", "guest:guest").strip()
+CALENDAR_COLUMNS = ["date", "time", "country", "title", "impact", "forecast", "previous", "source"]
+CURRENCIES = ["USD", "EUR", "JPY", "GBP", "CNY", "AUD", "CAD", "CHF", "NZD"]
+IMPACT_MAP = {
+    "High": ("High",),
+    "Medium+": ("High", "Medium"),
+    "All": None,
+}
 
-# --- Cached calendar fetch (prevents spamming the API on reruns) ---
-@st.cache_data(ttl=1800)
-def get_te_calendar_cached(api_key: str, start: date, end: date, country: str, importance: int | None):
-    return fetch_te_calendar(
-        api_key=api_key,
-        start=start,
-        end=end,
-        tz="Asia/Singapore",
-        country=country,
-        importance=importance,
-    )
+
+def load_events(start: date, end: date, currencies: list[str], impacts: tuple[str, ...] | None):
+    try:
+        return cache.events(start=start, end=end, currencies=tuple(currencies), impacts=impacts)
+    except Exception:
+        return None
 
 
 # =========================================================
@@ -32,53 +31,30 @@ def get_te_calendar_cached(api_key: str, start: date, end: date, country: str, i
 # =========================================================
 st.header("Economic Calendar")
 
-cal_top = st.columns([1, 1, 1, 1])
+cal_top = st.columns([1, 1, 2, 1])
 with cal_top[0]:
     cal_start = st.date_input("Start", value=date.today(), key="cal_start")
 with cal_top[1]:
     cal_end = st.date_input("End", value=date.today() + timedelta(days=7), key="cal_end")
 with cal_top[2]:
-    country = st.selectbox(
-        "Country",
-        ["United States", "Japan", "Euro area", "United Kingdom", "China", "Singapore"],
-        index=0,
-        key="cal_country",
-    )
+    currencies = st.multiselect("Currencies", CURRENCIES, default=["USD"], key="cal_currencies")
 with cal_top[3]:
-    importance = st.selectbox(
-        "Importance",
-        ["All", "High (3)", "Medium+ (2+)", "Low+ (1+)"],
-        index=1,
-        key="cal_importance",
-    )
+    importance = st.selectbox("Importance", list(IMPACT_MAP), index=0, key="cal_importance")
 
-importance_map = {
-    "All": None,
-    "High (3)": 3,
-    "Medium+ (2+)": 2,
-    "Low+ (1+)": 1,
-}
-imp_val = importance_map[importance]
+impacts = IMPACT_MAP[importance]
+cal_df = load_events(cal_start, cal_end, currencies, impacts)
 
-if not TE_API_KEY:
-    st.info("No TE_API_KEY found. Add it to `.streamlit/secrets.toml` (repo root).")
+if cal_df is None:
+    st.error("Calendar fetch failed. The sources may be rate-limiting; try again in a few minutes.")
+elif len(cal_df) == 0:
+    st.warning("No events returned for this window / filters.")
 else:
-    try:
-        cal_df = get_te_calendar_cached(TE_API_KEY, cal_start, cal_end, country, imp_val)
-        if cal_df is None or len(cal_df) == 0:
-            st.warning("No events returned for this window / filters. "
-                       "Try going back to 2025 as Trading Economic Calendar does not allow recent data to be pulled.")
-        else:
-            st.dataframe(
-                cal_df[["time", "report", "period", "actual", "forecast", "previous"]],
-                use_container_width=True,
-                hide_index=True,
-            )
-    except Exception:
-        # Keep error messages token-safe and clean
-        st.error("Calendar fetch failed. Check TE access / rate limits, and try again later.")
-
-    st.caption(f"Returned {len(cal_df)} events for {cal_start} → {cal_end}")
+    st.dataframe(cal_df[CALENDAR_COLUMNS], use_container_width=True, hide_index=True)
+    st.caption(f"Returned {len(cal_df)} events for {cal_start} → {cal_end} (times in SGT)")
+st.caption(
+    "ForexFactory covers this week and next for all currencies (with forecast/previous). "
+    "Beyond that, scheduled US releases come from the FRED release calendar and FOMC dates from the Fed."
+)
 
 st.divider()
 
@@ -105,14 +81,13 @@ with st.expander("Generate pack (3–5 charts + discussion summary)", expanded=T
 
     if run:
         with st.spinner("Building pack..."):
+            pack_events = load_events(asof, asof + timedelta(days=2), currencies, impacts or ("High",))
             pack = build_daily_pack(
                 asof=asof,
                 lookback_days=lookback,
                 pack_type=pack_type,
-                fred_api_key=st.secrets.get("FRED_API_KEY", ""),  # <-- add this line
-                te_api_key=TE_API_KEY if TE_API_KEY else None,
-                te_country=country,
-                te_importance=3 if imp_val is None else imp_val,
+                fred_api_key=cache.get_secret("FRED_API_KEY"),
+                events=pack_events,
             )
             st.session_state["daily_pack"] = pack
 
@@ -140,9 +115,9 @@ with st.expander("Generate pack (3–5 charts + discussion summary)", expanded=T
         if events_df is not None and len(events_df) > 0:
             st.subheader("Next 48h key events (from Daily Pack)")
             st.dataframe(
-                events_df[["time", "report", "period", "actual", "forecast", "previous"]].head(12),
+                events_df[CALENDAR_COLUMNS].head(12),
                 use_container_width=True,
                 hide_index=True,
             )
         else:
-            st.caption("No events returned (missing key, API issue, or empty window).")
+            st.caption("No events returned (API issue or empty window).")
