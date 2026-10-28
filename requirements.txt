@@ -7,3 +7,5 @@ scikit-learn
 pandas-datareader
 pyarrow
 requests
+yfinance
+pyyaml
